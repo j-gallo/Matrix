@@ -1,0 +1,213 @@
+GAUSS
+Author: Julian Gallo
+November, 2010
+
+------------------------------------------------------------------
+
+DESCRIPTION:
+
+This program will accept as input a matrix and a solution vector to the 
+equation Mx=b where b is the solution vector and M is the matrix.
+The program will then calculate the determinant of the matrix and the 
+value of the answer vector (x). By default the program will compute
+the determinant and answer vector using Gauss-Jordan with pivoting.
+The user has the option of having the program computethe determinant 
+and answer vector using Gauss-Jordan elimination without pivoting.
+
+------------------------------------------------------------------
+
+INPUT:
+
+The program expects as input two arguments which are the paths to
+the files containing the matrix and solution vector in that order.
+
+./gauss (INPUT MATRIX) (SOLUTION VECTOR)
+
+The program reads the files as a human reads. Therefore, the matrix
+may either be formatted in the file as one would right a matrix on paper
+
+1	2	3
+4	5	6
+7	8	9
+
+or the elements may be one single row or column in the file.
+
+1	2	3	4	5	6	7	8	9
+or
+1
+2
+3
+4
+5
+6
+7
+8
+9
+are both valid input formats.
+
+If Gauss-Jordan elimination without pivoting is desired, the
+flag -np must be supplied after the two arguments for the 
+matrix and solution vector.
+
+./gauss (INPUT MATRIX) (SOLUTION VECTOR) -np
+
+------------------------------------------------------------------
+
+OUTPUT:
+
+The program will output the determinant of the matrix to the
+screen and write three files to the working directory. The 
+three files are gauss_answer.out which is the answer to the
+equation (x), gauss_mat.out which is the input matrix in
+upper triangular form, and gauss_solution.out which is 
+the solution vector after it has changed in tandem with the
+matrix.
+
+------------------------------------------------------------------
+
+KNOWN BUGS:
+
+If the matrix
+1.2648	1.2235	3.2544
+0.2356	2.3632	0.3332
+9.9986	6.3321	5.2101
+
+is input into the file with the any two numbers  put together,
+1.2648	1.22353.2544
+0.2356	2.3632	0.3332
+9.9986	6.3321	5.2101
+
+the program will read in the matrix as
+1.2648	1.22353 0.2544
+0.2356	2.3632	0.3332
+9.9986	6.3321	5.2101
+
+------------------------------------------------------------------
+
+REQUIREMENTS:
+
+gcc
+make
+
+------------------------------------------------------------------
+
+COMPILING:
+
+To create an executable, in the directory of the source code type:
+make
+
+To clean the directory of the executable type:
+make clean
+
+------------------------------------------------------------------
+
+LIMITATIONS:
+
+Gauss-Jordan elimination will fail given a large enough matrix or
+a matrix which is highly irregular. An example of an irregular matrix
+is one which has diagonal elements much much smaller than the 
+off-diagonal elements.
+
+A matrix whose off-diagonal elements are up to 8 orders of magnitude 
+higer than the diagonal elements will show variance between the two 
+methods at about 9 digits. For an order of magnitude difference of
+between 9 and 15, the two methods will only agree to about 3 digits.
+At a 16 order of magnitude difference, The variance in the two methods
+was a factor of about 1.5 for the test matrix used. 
+
+.0000000000000002		9		1
+5		.0000000000000001		7
+7		2		.0000000000000004
+
+At this point, non-pivoting is no longer viable.
+
+For matrices with very large dimensions, matrices of 10x10, 20x20, 
+50x50, 100x100, and 1000x1000 dimensions were tested. The determinants 
+calculated from each method differed for the 10x10 and 20x20 matrix by 
+1e-12%, by 1e-11% for the 50x50, 1e-9% for the 100x100, and 1e-8% for the 
+1000x1000.
+
+Clearly, the non-pivoting algorithm performs a lot better for large 
+matrices than for highly irregular matrtices.
+
+------------------------------------------------------------------
+
+PSEUDO-CODE:
+
+The non pivoting algorithm is as follows:
+
+**First row reduce to upper triangular form.
+
+  for c less than n			**n is the dimension of the matrix
+  {
+    for k = n, k greater than 1, k--
+    {
+      -if the current diagonal is zero add to the current row 
+      the next row below with a nonzero element in the same 
+      column
+      **This will ensure that there is no division by zero      
+
+      for i less than or equal to n		**k and i are counters
+      {
+        M(ki) = -M(kc)/M(cc) * M(ci) + M(ki)	**M(ki) is the the ki-th
+      }						  componnent of the matrix M
+      b(k) = M(kc)/M(cc) *M(ci) + b(k)		**b(k) is the bth componnent
+    }						  of the solution vector b
+  }
+
+**Compute the answer vector
+
+  x(n) = b(n)
+
+  for i = n, i greater than 1, i--
+  {
+    for k=n-1, k greater than 1, k--
+    {
+      Temp = b(i) -M(ik) * x_k		*Temp is a temporary placeholder
+    }
+      k(i) = Temp/M(ii)
+  }
+
+  Compute the determinant by multiplying all of the diagonal elements
+-------
+
+The Pivoting algorithm is as follows
+
+  for c from 0 to n-1
+  {
+    -if an element in the cth column is larger
+    than the M(cc), switch the two rows of both
+    the matrix and the solution vector and add 
+    1 to the swap counter.
+
+   for k = n, k greater than 1, k--
+    {
+      for i less than or equal to n		**k and i are counters
+      {
+        M(ki) = -M(kc)/M(cc) * M(ci) + M(ki)	**M(ki) is the the ki-th
+      }						  componnent of the matrix M
+      b(k) = M(kc)/M(cc) *M(ci) + b(k)		**b(k) is the bth componnent
+    }						  of the solution vector b
+  }
+
+
+  **Compute the answer vector as before
+
+  To find the determinant, multiply all of the diagonal elements
+  as before and then change the sign if the number of row swaps
+  was odd.
+
+------------------------------------------------------------------
+
+SAMPLE INPUT:
+
+The sample input provided is
+
+2x2 matrix:		mat2.in
+solution vector:	b2
+
+3x3 matrix:		mat3.in 
+solution vector:	b3
+
+4x4 matrix:		mat4.in
+solution vector:	b4
